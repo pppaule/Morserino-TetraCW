@@ -2173,7 +2173,7 @@ void displayGeneratedMorse(FONT_ATTRIB style, String s)
 void SerialOutMorse(String s, uint8_t origin) {
   uint8_t bitmap = (MorsePreferences::pliste[posSerialOut].value < 5 ? MorsePreferences::pliste[posSerialOut].value : 7);
   if (origin & bitmap){
-    int prosign = 0;
+    int prosign = 0;               // change prosigns to serial actions
     if (s == "<bk>") prosign = 1;
     else if (s == "<ch>") prosign = 2;
     else if (s == "<err>") prosign = 3;
@@ -3189,36 +3189,56 @@ void skipWords(uint32_t count) {             /// just skip count words in open f
   delay response. Multiple bytes of data may be available.
 */
 
-void serialEvent() {
-      while (Serial.available()) {
-        // get the new byte:
-        char inChar = (char)Serial.read();
-        // add it to the inputString:
-        inputString += inChar;
-        // if the incoming character is a newline, set a flag so the main loop can
-        // do something about it:
-        if (inChar == '\n') {
-          stringComplete = true;
-          break;
-        }
-      }
-      if (stringComplete) {
-              inputString.trim();
 
-              if (m32protocol)
-                serialDecode(inputString);
-              else {
-                inputString.toLowerCase();
-                if (inputString  == "put device/protocol/on")  {  /// client wants to switch m32 Protocol on
-                  m32protocol = true;
-                  MorseJSON::jsonDevice(brd,vsn);
-                }
-              }
-          // clear the string:
-          inputString = "";
-          stringComplete = false;
-      }
+void serialEvent() {  //this puts out serial input on screen
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    String tmp_str = String(inChar);
+    MorseOutput::printToScroll(REGULAR, tmp_str, false, encoderState == scrollMode);
+
+    // Optional: Zeilenumbruch auf Display bei \n oder \r
+    if (inChar == '\n' || inChar == '\r') {
+      MorseOutput::printToScroll(REGULAR, "", false, encoderState == scrollMode);
+    }
+  }
 }
+
+ // old code for m32 protocol
+
+
+//       while (Serial.available()) {
+//         // get the new byte:
+//         char inChar = (char)Serial.read();
+//         // add it to the inputString:
+//         inputString += inChar;
+//         // if the incoming character is a newline, set a flag so the main loop can
+//         // do something about it:
+//         if (inChar == '\n') {
+//           stringComplete = true;
+//           break;
+//         }
+//       }
+//       if (stringComplete) {
+//               inputString.trim();
+
+//               if (m32protocol)
+//                 serialDecode(inputString);
+//               else {
+//                 inputString.toLowerCase();
+//                 if (inputString  == "put device/protocol/on")  {  /// client wants to switch m32 Protocol on
+//                   m32protocol = true;
+//                   MorseJSON::jsonDevice(brd,vsn);
+//                 } else {
+                  
+//                   // print serial carracter to screen
+//                 }
+//               }
+//               }
+//           // clear the string:
+//           inputString = "";
+//           stringComplete = false;a
+//       }
+// }
 
 
 /////////////////////
