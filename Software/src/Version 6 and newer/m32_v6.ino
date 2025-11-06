@@ -444,7 +444,7 @@ void setup()
    //// 7. check for press of key/paddle at start, to initiate hw config
    //// 8. do the remaining initialisations
 
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(50); // give me time to bring up serial monitor
   // reserve 200 bytes for the serial inputString variable defiend above:
   inputString.reserve(255);
@@ -2172,9 +2172,29 @@ void displayGeneratedMorse(FONT_ATTRIB style, String s)
 
 void SerialOutMorse(String s, uint8_t origin) {
   uint8_t bitmap = (MorsePreferences::pliste[posSerialOut].value < 5 ? MorsePreferences::pliste[posSerialOut].value : 7);
-  if (origin & bitmap)
-      Serial.print(s);
+  if (origin & bitmap){
+    int prosign = 0;
+    if (s == "<bk>") prosign = 1;
+    else if (s == "<ch>") prosign = 2;
+    else if (s == "<err>") prosign = 3;
+
+    switch (prosign) {
+      case 1: // <bk>
+        Serial.println();
+        break;
+      case 2: // <ch>
+        Serial.print("ch");
+        break;
+      case 3: // <err>
+        Serial.print("\b \b"); // Backspace
+        break;
+      default:
+        Serial.print(s);
+        break;
+    }
+  }
 }
+
 
 
 //////// Display the current CW speed
