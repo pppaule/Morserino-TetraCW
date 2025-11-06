@@ -1,3 +1,8 @@
+CW to Tetra. CW SDS composer for the Motorola MTP850.
+
+Interface to write Tetra SDS in Morse code utilizing Morserino32 Hardware.
+
+based on the great:
 # Morserino-32
 Morserino-32 multi-functional Morse code machine, based on ESP32
 
@@ -5,16 +10,3 @@ Here on GitHub you will find both software and documentation of both hardware an
 
 For more information about Morserino-32, and for buying a kit, go to http://bit.ly/morserino-32
 
-
-For general information and FAQ go to http://morserino.info
-
-Announcements via Email (through Mailchimp): http://eepurl.com/dwEVkz
-
-User Group (Email, through groups.io): https://groups.io/g/morserino
-<img width="3636" height="3024" alt="M32P" src="https://github.com/user-attachments/assets/3c87ce30-28b5-44fa-b803-c715406c0308" />
-
-![Morserino Image](https://raw.githubusercontent.com/oe1wkl/Morserino-32/master/Documentation/User%20Manual/Version%204.x/Morserino.jpg)
-
-![DXZone logo](https://raw.githubusercontent.com/oe1wkl/Morserino-32/master/dxzone_180x85_rounded.gif)
-
-<a href="https://www.dxzone.com/cgi-bin/dir/rate.cgi?ID=33277">Rate this site @ dxzone.com</a>
