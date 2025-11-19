@@ -1,6 +1,7 @@
 CW to Tetra. CW SDS composer for the Motorola MTP850.
 
 Interface to write Tetra SDS in Morse code utilizing Morserino32 Hardware.
+currently it uses morserino to act as a serial terminal.
 
 based on the great:
 # Morserino-32
