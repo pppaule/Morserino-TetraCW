@@ -40,6 +40,7 @@
 #include "MorseWiFi.h"        // WiFi functions
 #include "goertzel.h"         // Goertzel filter
 #include "MorseDecoder.h"     // Decoder Engine
+#include "TetraRadio.h"   
 
 #ifdef LORA_RADIOLIB
 #include <RadioLib.h>
@@ -447,6 +448,7 @@ void setup()
   Serial.begin(9600);
   delay(50); // give me time to bring up serial monitor
   // reserve 200 bytes for the serial inputString variable defiend above:
+
   inputString.reserve(255);
 
 
@@ -686,11 +688,27 @@ digitalWrite(PIN_VEXT, VEXT_ON_VALUE);
         file.close();
     }
     displayStartUp(volt);
-    while (Serial.available())        // remove spurious input from Serial port
-      Serial.read();
-    inputString = "";
+   Serial.println("AT");
+    // while (Serial.available())        // remove spurious input from Serial port
+    //   Serial.read();
+    // inputString = "";
+
+  // String input = "";
+  // while (true) {
+  //   if (Serial.available()) {
+  //     char c = Serial.read();
+  //     if (c == '\\n' || c == '\\r') {
+  //       if (input == "OK") break;
+  //       input = "";
+  //     } else {
+  //       input += c;
+  //     }
+  //   }
+  //  }
+// ⁄}
     MorseMenu::menu_();
 
+    //  init_tetra();
 
   } /////////// END setup()
 

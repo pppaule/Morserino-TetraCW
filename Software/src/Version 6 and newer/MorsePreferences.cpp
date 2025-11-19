@@ -485,6 +485,11 @@ uint8_t MorsePreferences::memPtr = 0;
 #endif
 
 
+  // prefPos MorsePreferences::tetraOptions[] =     { PREFPOS_COMMON_CORE THEME BLUE posSerialOut, posPolarity, posExtPddlPolarity,
+
+  //                                                  posCurtisMode, posCurtisBDahTiming, posCurtisBDotTiming, posACS,  posInterWordSpace, posLatency
+  //                                                };
+
   prefPos MorsePreferences::keyerOptions[] =     { PREFPOS_COMMON_CORE THEME BLUE posSerialOut, posPolarity, posExtPddlPolarity,
 
                                                    posCurtisMode, posCurtisBDahTiming, posCurtisBDotTiming, posACS,  posInterWordSpace, posLatency

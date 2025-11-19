@@ -1,0 +1,14 @@
+[Unit]
+Description=Tetra Terminal Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/html
+ExecStart=/usr/bin/npm start --prefix /var/www/html
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

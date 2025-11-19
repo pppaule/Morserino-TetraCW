@@ -81,14 +81,15 @@ const String menuText [menuN] = {
     "Wifi Select", //41
 
 
-  "Go To Sleep" } ; // 42
+  "Go To Sleep",
+  "TetraSDS" } ; // 43
 
 enum navi {naviLevel, naviLeft, naviRight, naviUp, naviDown };
 
 
 const uint8_t menuNav [menuN] [5] = {                   // { level, left, right, up, down}
   { 0,0,0,0,0},                                         // 0 = dummy
-  {0,_goToSleep,_gen,_dummy,0},                         // 1 keyer  -e
+  {0,_tetraSDS,_gen,_dummy,0},                         // 1 keyer  -e
   {0,_keyer,_echo,_dummy,_genRand},                     // 2 generator
   {1,_genPlayer,_genAbb,_gen,0},                        // 3 gen random -e
   {1,_genRand,_genWords,_gen,0},                        // 4 gen Abb  -e
@@ -136,7 +137,8 @@ const uint8_t menuNav [menuN] [5] = {                   // { level, left, right,
   {1,_wifi_check,_wifi_update,_wifi,0},                 // 39 Upload File    --NE!
   {1,_wifi_upload,_wifi_select,_wifi,0},                // 40 Update Firmware  --NE!
   {1,_wifi_update,_wifi_mac,_wifi,0},                   // 41 Select network  --NE!!
-  {0,_wifi,_keyer,_dummy,0}                             // 42 goto sleep  -e
+  {0,_wifi,_tetraSDS,_dummy,0},                             // 42 goto sleep  -e
+  {0,_goToSleep,_keyer,_dummy,0}                            // 43 tetra sds
 };
 
 //String MorseMenu::cmdPath;   // used to create string for json
@@ -530,6 +532,8 @@ boolean MorseMenu::menuExec() {                                          // retu
                   break;
       case  _goToSleep: /// deep sleep
                 checkShutDown(true);
+      case  _tetraSDS:
+                break;
       default:  break;
   }
   m32state = menu_loop;

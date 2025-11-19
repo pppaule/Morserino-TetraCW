@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>TETRA Terminal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      background-color: #f4f4f4;
+    }
+    .container, #webParser {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      align-items: flex-start;
+    }
+    .container > .row {
+      flex-basis: 100%;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      align-items: flex-start;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      resize: vertical;
+    }
+    input, select, button {
+      font-size: 1em;
+      padding: 0.4em;
+    }
+    .map {
+      height: 900px;
+      width: 100%;
+      margin-top: 1em;
+    }
+    .map-preview {
+      height: 200px;
+      width: 300px;
+      margin-top: 0;
+    }
+    #dbLogs table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+    #dbLogs th, #dbLogs td {
+      border: 1px solid #ccc;
+      padding: 0.3em;
+      word-break: break-all;
+    }
+    #dbLogs th {
+      background: #eee;
+    }
+    .contactsTable {
+      border-collapse: collapse;
+    }
+    .contactsTable th, .contactsTable td {
+      border: 1px solid #ccc;
+      padding: 0.3em;
+      word-break: break-all;
+    }
+    .contactsTable th {
+      background: #eee;
+    }
+    #dapnetTable th, #dapnetTable td {
+      padding: 0.3em;
+      word-break: break-word;
+    }
+    #dapnetTable th {
+      background: #eee;
+    }
+    #intervalList, #intervalList2 {
+      border: 1px solid #ccc;
+      padding: 0.3em;
+      min-width: 120px;
+      min-height: 2em;
+    }
+    .interval-item {
+      display: flex;
+      align-items: center;
+    }
+    .interval-item button {
+      margin-left: 0.3em;
+    }
+    .tg-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3em;
+      margin-left: 1em;
+    }
+    .tg-entry {
+      border: 1px solid #ccc;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      background: #eee;
+      font-size: 0.9em;
+    }
+    .tg-entry.active {
+      background: yellow;
+    }
+
+    .site-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3em;
+      margin-left: 1em;
+    }
+    .site-entry {
+      border: 1px solid #ccc;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      background: #eee;
+      font-size: 0.9em;
+    }
+    .site-entry.online { background: #0f0; }
+    .site-entry.offline { background: orange; }
+    .site-entry.unknown { background: red; color: #fff; }
+    .site-entry.dynamic { background: #9cf; }
+    .site-entry.dynamic.online,
+    .site-entry.dynamic.offline,
+    .site-entry.dynamic.unknown { background: #9cf; color: #000; }
+
+    details {
+      border: 1px solid #ccc;
+      padding: 0.3em;
+      background: #f9f9f9;
+      margin-bottom: 0.5em;
+      resize: horizontal;
+      overflow: auto;
+      width: 100%;
+    }
+    details > summary {
+      cursor: move;
+      font-weight: bold;
+      margin-bottom: 0.5em;
+    }
+    details.dragging {
+      opacity: 0.5;
+    }
+    .scrollable {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    body.dark details {
+      background: #333;
+      border-color: #555;
+    }
+
+    body.dark {
+      background-color: #222;
+      color: #eee;
+    }
+    body.dark input,
+    body.dark select,
+    body.dark button,
+    body.dark textarea {
+      background-color: #333;
+      color: #eee;
+      border-color: #555;
+    }
+    body.dark #dbLogs th,
+    body.dark .contactsTable th,
+    body.dark #dapnetTable th,
+    body.dark .tg-entry,
+    body.dark .site-entry {
+      background: #555;
+    }
+    body.dark #dbLogs td,
+    body.dark #dbLogs th,
+    body.dark .contactsTable td,
+    body.dark .contactsTable th,
+    body.dark #dapnetTable td,
+    body.dark #dapnetTable th,
+    body.dark .tg-entry,
+    body.dark .site-entry {
+      border-color: #666;
+    }
+    body.dark .site-entry.online { background: #060; color:#fff; }
+    body.dark .site-entry.offline { background: #a60; color:#fff; }
+    body.dark .site-entry.unknown { background: #800; color:#fff; }
+    body.dark .site-entry.dynamic { background: #039; color:#fff; }
+    body.dark .site-entry.dynamic.online,
+    body.dark .site-entry.dynamic.offline,
+    body.dark .site-entry.dynamic.unknown { background: #039; color:#fff; }
+
+    #mapMenu {
+      position: absolute;
+      z-index: 10000;
+      background: #fff;
+      border: 1px solid #ccc;
+      color: #000;
+      display: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    #mapMenu ul { list-style: none; margin: 0; padding: 0; }
+    #mapMenu li { padding: 0.3em 0.6em; cursor: pointer; }
+    #mapMenu li:hover { background: #eee; }
+    #mapMenu li.disabled { color: #999; pointer-events: none; }
+    body.dark #mapMenu {
+      background: #333;
+      color: #eee;
+      border-color: #555;
+    }
+    body.dark #mapMenu li.disabled { color: #666; }
+    body.dark #mapMenu li:hover { background: #444; }
+
+    #mainNav {
+      display: flex;
+      gap: 0.5em;
+      margin-bottom: 1em;
+    }
+    #mainNav button.active {
+      font-weight: bold;
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+  </style>
+  <link rel="stylesheet" href="libs/leaflet.css">
+  <link rel="stylesheet" href="libs/MarkerCluster.css">
+  <link rel="stylesheet" href="libs/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="libs/leaflet-routing-machine.css">
+</head>
+  <body>
+    <h2>TETRA-Terminal</h2>
+    <nav id="mainNav">
+      <button data-panel="panel-main" class="active">Hauptfunktionen</button>
+      <button data-panel="panel-web">Web Parser</button>
+      <button data-panel="panel-db">Datenbank</button>
+      <button data-panel="panel-mappings">Mappings</button>
+      <button data-panel="panel-dapnet">DAPNET</button>
+      <button data-panel="panel-map">OSM-Karte</button>
+    </nav>
+    <div id="panel-main" class="panel active">
+      <div class="container">
+    <div class="row">
+      <label for="houseLabel">Hausmarker 1:</label>
+      <input type="text" id="houseLabel" value="🏠 (__ISSI1__)">
+      <label for="houseLabel2">Hausmarker 2:</label>
+      <input type="text" id="houseLabel2" value="🏠 (__ISSI2__)">
+      <div id="siteStatusDisplay" class="site-status">
+        <div class="site-entry" data-site="sip-gateway">sip-gateway</div>
+        <div class="site-entry" data-site="svx-262">svx-262</div>
+        <div class="site-entry" data-site="svx-26200">svx-26200</div>
+        <div class="site-entry" data-site="tetrapack">tetrapack</div>
+        <div class="site-entry" data-site="db0csh">db0csh</div>
+        <div class="site-entry" data-site="db0dtm">db0dtm</div>
+        <div class="site-entry" data-site="db0diz">db0diz</div>
+        <div class="site-entry" data-site="db0hei">db0hei</div>
+        <div class="site-entry" data-site="db0hbo">db0hbo</div>
+        <div class="site-entry" data-site="db0mue">db0mue</div>
+        <div class="site-entry" data-site="db0oha">db0oha</div>
+        <div class="site-entry" data-site="db0pra">db0pra</div>
+        <div class="site-entry" data-site="db0vc">db0vc</div>
+        <div class="site-entry" data-site="db0vel">db0vel</div>
+        <div class="site-entry" data-site="db0xh">db0xh</div>
+        <div class="site-entry" data-site="db0xn">db0xn</div>
+        <div class="site-entry" data-site="db0zod">db0zod</div>
+        <div class="site-entry" data-site="dm0fl">dm0fl</div>
+        <div class="site-entry" data-site="dm0hro">dm0hro</div>
+        <div class="site-entry" data-site="dm0kil">dm0kil</div>
+        <div class="site-entry" data-site="dm0sl">dm0sl</div>
+        <div class="site-entry" data-site="do0atr">do0atr</div>
+      </div>
+    </div>
+    <div class="row">
+      <input type="checkbox" id="darkModeToggle">
+      <label for="darkModeToggle">🌙 Dark&nbsp;Mode</label>
+      <input type="checkbox" id="issiLookup">
+      <label for="issiLookup">🔎 ISSI&nbsp;Lookup</label>
+    </div>
+    <div class="row">
+      <details style="width:calc(49% - 0.25em);">
+        <summary>Gerät 1 (ISSI __ISSI1__)</summary>
+    <div class="row">
+      <button id="reset">🔄 AT Reset</button>
+      <button id="init">⚙️ AT Init</button>
+      <button id="ptt">🎙️ PTT</button>
+      <button id="audio">🔈 Enable Audio</button>
+      <button id="noiseFilter">🔔 Enable Noise Filter</button>
+      <input type="range" id="noiseLevel" min="0" max="0.1" step="0.005" value="0.02" style="width:100px;">
+      <button id="squelch">📢 Enable Squelch</button>
+      <input type="range" id="squelchLevel" min="0" max="0.1" step="0.005" value="0.02" style="width:100px;">
+      <button id="mute">🔇 Mute</button>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="1" style="width:100px;">
+    </div>
+    <div class="row" id="commandButtons"></div>
+
+    <div class="row">
+      <select id="sdsType">
+        <option value="0">Normal SDS</option>
+        <option value="1">Flash SDS</option>
+        <option value="2">Status</option>
+      </select>
+      <input type="text" id="destination" placeholder="Zielnummer (z.B. __ISSI2__)">
+      <input type="text" id="message" placeholder="Nachricht (ASCII)">
+      <button id="sendSds">📨 SDS senden</button>
+      <div id="mapPreview" class="map map-preview"></div>
+      <div style="display:flex;gap:0.5em;">
+        <div id="contactsTableWrapper" style="overflow-y:auto;max-height:200px;">
+          <table class="contactsTable">
+            <thead>
+              <tr><th>#</th><th>Nummer</th><th>Name</th></tr>
+            </thead>
+            <tbody id="contactsTableBody" class="contactsTableBody"></tbody>
+          </table>
+        </div>
+        <textarea id="sdsMessages" readonly style="width:300px;height:200px"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <label for="ackType">Automatische Empfangsbestätigung:</label>
+      <select id="ackType">
+        <option value="0">Keine</option>
+        <option value="1">SDS Ack</option>
+        <option value="2">Status Ack</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <input type="text" id="gpsIssi" placeholder="ISSI (z.B. __ISSI2__)">
+      <input type="number" id="intervalSeconds" value="30" min="5" style="width:5em">
+      <select id="markerSelect">
+        <option value="man">Person</option>
+        <option value="car">Auto</option>
+        <option value="walkie">Walkie&nbsp;Talkie</option>
+        <option value="pin">Stecknadel</option>
+        <option value="people">Gruppe</option>
+        <option value="telecom">Antenne</option>
+      </select>
+      <button id="requestGps">📍 GPS von ISSI abfragen</button>
+      <button id="startInterval">Intervalabfrage</button>
+      <button id="requestLip">LIP</button>
+      <button id="requestLongLip">Long&nbsp;LIP</button>
+      <button id="requestLrrp">LRRP</button>
+      <div id="intervalList" style="display:flex;flex-direction:column;margin-left:1em;"></div>
+    </div>
+    <div class="row">
+      <label for="trackSelect">Track:</label>
+      <select id="trackSelect">
+        <option value="">(kein)</option>
+      </select>
+      <button id="clearTrack">Track löschen</button>
+      <button id="exportTracks" style="margin-left:0.5em;">Tracks exportieren</button>
+    </div>
+    <div class="row">
+      <input type="text" id="customCommand" placeholder="AT-Befehl manuell">
+      <button id="sendCustom">⏎ Senden</button>
+    </div>
+    <div class="row">
+      <button id="enableTnp1">Alle TNP1&nbsp;Service-Profile einschalten</button>
+      <select id="tnp1ProfileSelect"></select>
+      <button id="enableTnp1Single">Profil schalten</button>
+      <div id="tgDisplay" class="tg-status"></div>
+    </div>
+    <details>
+      <summary>Output</summary>
+      <div class="row" style="flex-direction:column;">
+        <textarea id="output1" readonly></textarea>
+        <button id="clearLog1">🧹 Log leeren</button>
+      </div>
+    </details>
+    <details>
+      <summary>Signalstärke dBm</summary>
+      <canvas id="rssiChart1" style="max-height:200px"></canvas>
+    </details>
+    <details>
+      <summary>Init-Befehle</summary>
+      <textarea id="initCommands" style="height:100px"></textarea>
+    </details>
+    </details>
+
+    <details style="width:calc(49% - 0.25em);">
+      <summary>Gerät 2 (ISSI __ISSI2__)</summary>
+    <div class="row">
+      <button id="reset2">🔄 AT Reset</button>
+      <button id="init2">⚙️ AT Init</button>
+      <button id="ptt2">🎙️ PTT</button>
+      <button id="audio2">🔈 Enable Audio</button>
+      <button id="noiseFilter2">🔔 Enable Noise Filter</button>
+      <input type="range" id="noiseLevel2" min="0" max="0.1" step="0.005" value="0.02" style="width:100px;">
+      <button id="squelch2">📢 Enable Squelch</button>
+      <input type="range" id="squelchLevel2" min="0" max="0.1" step="0.005" value="0.02" style="width:100px;">
+      <button id="mute2">🔇 Mute</button>
+      <input type="range" id="volume2" min="0" max="1" step="0.01" value="1" style="width:100px;">
+    </div>
+    <div class="row" id="commandButtons2"></div>
+    <div class="row">
+      <select id="sdsType2">
+        <option value="0">Normal SDS</option>
+        <option value="1">Flash SDS</option>
+        <option value="2">Status</option>
+      </select>
+      <input type="text" id="destination2" placeholder="Zielnummer (z.B. __ISSI2__)">
+      <input type="text" id="message2" placeholder="Nachricht (ASCII)">
+      <button id="sendSds2">📨 SDS senden</button>
+      <div id="mapPreview2" class="map map-preview"></div>
+      <div style="display:flex;gap:0.5em;">
+        <div id="contactsTableWrapper2" style="overflow-y:auto;max-height:200px;">
+          <table class="contactsTable">
+            <thead>
+              <tr><th>#</th><th>Nummer</th><th>Name</th></tr>
+            </thead>
+            <tbody id="contactsTableBody2" class="contactsTableBody"></tbody>
+          </table>
+        </div>
+        <textarea id="sdsMessages2" readonly style="width:300px;height:200px"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <label for="ackType2">Automatische Empfangsbestätigung:</label>
+      <select id="ackType2">
+        <option value="0">Keine</option>
+        <option value="1">SDS Ack</option>
+        <option value="2">Status Ack</option>
+      </select>
+    </div>
+    <div class="row">
+      <input type="text" id="gpsIssi2" placeholder="ISSI (z.B. __ISSI2__)">
+      <input type="number" id="intervalSeconds2" value="30" min="5" style="width:5em">
+      <select id="markerSelect2">
+        <option value="man">Person</option>
+        <option value="car">Auto</option>
+        <option value="walkie">Walkie&nbsp;Talkie</option>
+        <option value="pin">Stecknadel</option>
+        <option value="people">Gruppe</option>
+        <option value="telecom">Antenne</option>
+      </select>
+      <button id="requestGps2">📍 GPS von ISSI abfragen</button>
+      <button id="startInterval2">Intervalabfrage</button>
+      <button id="requestLip2">LIP</button>
+      <button id="requestLongLip2">Long&nbsp;LIP</button>
+      <button id="requestLrrp2">LRRP</button>
+      <div id="intervalList2" style="display:flex;flex-direction:column;margin-left:1em;"></div>
+    </div>
+    <div class="row">
+      <label for="trackSelect2">Track:</label>
+      <select id="trackSelect2">
+        <option value="">(kein)</option>
+      </select>
+      <button id="clearTrack2">Track löschen</button>
+    </div>
+    <div class="row">
+      <input type="text" id="customCommand2" placeholder="AT-Befehl manuell">
+      <button id="sendCustom2">⏎ Senden</button>
+    </div>
+    <div class="row">
+      <button id="enableTnp12">Alle TNP1&nbsp;Service-Profile einschalten</button>
+      <select id="tnp1ProfileSelect2"></select>
+      <button id="enableTnp1Single2">Profil schalten</button>
+      <div id="tgDisplay2" class="tg-status"></div>
+    </div>
+    <details>
+      <summary>Output</summary>
+      <div class="row" style="flex-direction:column;">
+        <textarea id="output2" readonly></textarea>
+        <button id="clearLog2">🧹 Log leeren</button>
+      </div>
+    </details>
+    <details>
+      <summary>Signalstärke dBm</summary>
+      <canvas id="rssiChart2" style="max-height:200px"></canvas>
+    </details>
+    <details>
+      <summary>Init-Befehle</summary>
+      <textarea id="initCommands2" style="height:100px"></textarea>
+      </details>
+      </details>
+    </div>
+  </div>
+  </div>
+
+  <div id="panel-web" class="panel">
+  <div id="webParser">
+      <details style="width:99%;">
+        <summary>Status</summary>
+        <div class="scrollable">
+          <table>
+            <thead><tr><th>Site</th><th>State</th><th>Aktive Groups</th></tr></thead>
+            <tbody id="webStatusBody"></tbody>
+          </table>
+        </div>
+      </details>
+      <details style="width:99%;">
+        <summary>QRV Users</summary>
+        <div class="scrollable">
+          <table>
+            <thead><tr><th>ISSI</th><th>Callsign</th><th>Site</th><th>Groups</th></tr></thead>
+            <tbody id="webQrvBody"></tbody>
+          </table>
+        </div>
+      </details>
+      <details style="width:99%;">
+        <summary>Logging</summary>
+        <div class="scrollable">
+          <table>
+            <thead><tr><th>Site</th><th>Modul</th><th>Message</th><th>Timestamp</th></tr></thead>
+            <tbody id="webLoggingBody"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+</div>
+
+<div id="panel-db" class="panel">
+  <details open>
+    <summary>MySQL</summary>
+    <div id="dbLogs">
+      <div class="row">
+        <select id="dbStore">
+          <option value="all">Alle</option>
+          <option value="commands">Commands</option>
+          <option value="sds">SDS</option>
+          <option value="gps">GPS</option>
+          <option value="contacts">Contacts</option>
+          <option value="markers">Markers</option>
+          <option value="tracks">Tracks</option>
+          <option value="web_status">Web Status</option>
+          <option value="web_qrv">Web QRV</option>
+          <option value="web_logs">Web Logs</option>
+          <option value="dapnet_messages">DAPNET</option>
+        </select>
+        <input type="text" id="dbFilter" placeholder="Filter">
+        <select id="dbSort">
+          <option value="timestamp_desc">Neueste zuerst</option>
+          <option value="timestamp_asc">Älteste zuerst</option>
+        </select>
+        <button id="reloadLogs">🔄 Neu laden</button>
+        <button id="exportDbCsv">📥 DB CSV-Export</button>
+        <button id="exportDbJson">📥 DB JSON-Export</button>
+        <input type="file" id="importDbFile" accept="application/json">
+        <button id="importDbJson">📤 DB JSON-Import</button>
+        <button id="clearDb">🗑️ Auswahl löschen</button>
+      </div>
+      <table id="dbTable">
+        <thead>
+          <tr><th>Zeit</th><th>Typ</th><th>Daten</th><th></th></tr>
+        </thead>
+        <tbody id="dbTableBody"></tbody>
+      </table>
+      <div class="row">
+        <button id="prevPage">◀️</button>
+        <span id="dbPageInfo"></span>
+        <button id="nextPage">▶️</button>
+      </div>
+    </div>
+  </details>
+</div>
+
+<div id="panel-mappings" class="panel">
+  <div class="container">
+    <div class="row">
+      <details open style="width:49%;">
+        <summary>AT-Profile</summary>
+        <div class="row" style="gap:0.5em;flex-wrap:wrap;">
+          <input type="text" id="profileName" placeholder="Profilname">
+          <textarea id="profileCommands" placeholder="AT-Befehle, je Zeile einer"></textarea>
+          <button id="saveProfile">Profil speichern</button>
+        </div>
+        <div id="profilesList" class="row" style="flex-direction:column;gap:0.5em;"></div>
+      </details>
+      <details open style="width:49%;">
+        <summary>SDS-Mappings</summary>
+        <div class="row" style="gap:0.5em;flex-wrap:wrap;">
+          <input type="text" id="sdsStatus" placeholder="Status (Hex)">
+          <input type="text" id="sdsText" placeholder="Text">
+          <select id="sdsSource">
+            <option value="1">Empfang Gerät 1 (ISSI __ISSI1__)</option>
+            <option value="2">Empfang Gerät 2 (ISSI __ISSI2__)</option>
+          </select>
+          <select id="sdsProfile"></select>
+          <select id="sdsTarget">
+            <option value="1">Profil auf Gerät 1 (ISSI __ISSI1__)</option>
+            <option value="2">Profil auf Gerät 2 (ISSI __ISSI2__)</option>
+          </select>
+          <input type="text" id="sdsIssis" placeholder="ISSI Whitelist (Komma)">
+          <button id="addSdsMapping">Mapping speichern</button>
+        </div>
+        <div id="sdsMappingsList" class="row" style="flex-direction:column;gap:0.5em;"></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div id="panel-dapnet" class="panel">
+  <div class="container">
+    <div class="row" style="gap:0.5em;flex-wrap:wrap;">
+      <button id="dapnetDebug">Debug</button>
+      <input type="text" id="dapnetAddress" placeholder="Adresse">
+      <input type="text" id="dapnetFunc" placeholder="Funktion">
+      <input type="text" id="dapnetText" placeholder="Text/Regex">
+      <label><input type="checkbox" id="dapnetRegex">Regex</label>
+      <select id="dapnetDevice">
+        <option value="1">Gerät 1 (ISSI __ISSI1__)</option>
+        <option value="2">Gerät 2 (ISSI __ISSI2__)</option>
+      </select>
+      <input type="text" id="dapnetIssis" placeholder="ISSIs (Komma)">
+      <button id="addDapnetMapping">Mapping speichern</button>
+    </div>
+    <div id="dapnetMappingsList" class="row" style="flex-direction:column;gap:0.5em;margin-top:0.5em;"></div>
+    <div class="row" style="flex-direction:column;width:100%;">
+      <div id="dapnetMessages" style="height:20em;overflow-y:auto;">
+        <table id="dapnetTable" style="width:100%;border-collapse:collapse;">
+          <thead><tr><th>Zeit</th><th>Nachricht</th></tr></thead>
+          <tbody id="dapnetTableBody"></tbody>
+        </table>
+      </div>
+      <pre id="dapnetDebugOutput" style="display:none;margin-top:0.5em;padding:0.5em;background:#111;color:#0f0;max-height:200px;overflow:auto;"></pre>
+    </div>
+  </div>
+</div>
+
+<div id="panel-map" class="panel">
+  <div class="container">
+    <div class="row">
+      <input type="number" id="geoLat" step="any" placeholder="Lat">
+      <input type="number" id="geoLon" step="any" placeholder="Lon">
+      <input type="number" id="geoRadius" step="any" placeholder="Radius m">
+      <button id="addGeofenceBtn">Geofence hinzufügen</button>
+      <input type="number" id="routeStartLat" step="any" placeholder="Start Lat">
+      <input type="number" id="routeStartLon" step="any" placeholder="Start Lon">
+      <input type="number" id="routeEndLat" step="any" placeholder="Ziel Lat">
+      <input type="number" id="routeEndLon" step="any" placeholder="Ziel Lon">
+      <button id="calcRouteBtn">Route berechnen</button>
+    </div>
+    <div class="row">
+      <input type="text" id="searchBox" list="searchResults" placeholder="Ort suchen">
+      <button id="cacheTilesBtn">Kacheln speichern</button>
+      <datalist id="searchResults"></datalist>
+    </div>
+    <div id="map" class="map"></div>
+    <div id="mapMenu">
+      <ul>
+        <li id="mapMenuAddMarker">Marker setzen</li>
+        <li id="mapMenuMeasure">Distanz messen</li>
+        <li id="mapMenuTopoStart">Topo Start</li>
+        <li id="mapMenuTopoEnd">Topo Ende</li>
+        <li id="mapMenuDeleteMarker">Marker löschen</li>
+        <li id="mapMenuClearMeasure">Messungen löschen</li>
+        <li id="mapMenuRouteStart">Als Startpunkt</li>
+        <li id="mapMenuRouteEnd">Als Zielpunkt</li>
+        <li id="mapMenuRouteDelete">Route löschen</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+  <script src="libs/leaflet.js"></script>
+  <script src="libs/leaflet.markercluster.js"></script>
+  <script src="libs/leaflet-routing-machine.js"></script>
+  <script src="libs/chart.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
+
+
